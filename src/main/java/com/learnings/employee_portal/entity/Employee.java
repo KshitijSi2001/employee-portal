@@ -25,7 +25,6 @@ public class Employee {
 
     @ManyToOne
     @JoinColumn(name = "department_id")
-    @JsonIgnore
     private Department department;
 
     @Enumerated(EnumType.STRING)

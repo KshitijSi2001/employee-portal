@@ -1,6 +1,8 @@
 package com.learnings.employee_portal.service;
 
 
+import com.learnings.employee_portal.dto.EmployeeRequest;
+import com.learnings.employee_portal.dto.EmployeeResponse;
 import com.learnings.employee_portal.entity.Department;
 import com.learnings.employee_portal.entity.Employee;
 import com.learnings.employee_portal.model.Status;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -22,45 +25,57 @@ public class EmployeeService {
     @Autowired
     private DepartmentRepository departmentRepository;
 
-    public List<Employee> getAllEmployees() {
-        return employeeRepository.findAll();
+    //done
+    public List<EmployeeResponse> getAllEmployees() {
+        List<Employee> employees = employeeRepository.findAll();
+
+        return helper(employees);
     }
 
-    public Employee getEmployeeById(int employeeId) {
-        return employeeRepository.findById(employeeId)
+    //done
+    public EmployeeResponse getEmployeeById(int employeeId) {
+        Employee employee =  employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND ,"Employee not found!!"));
+        return toResponse(employee);
     }
 
 
-    public void addEmployees(Employee employee) {
+    public void addEmployees(EmployeeRequest request) {
+        Employee employee = toEntity(request);
+
         employeeRepository.save(employee);
     }
 
 
-    public List<Employee> getEmployeesByAge(int age) {
-        return employeeRepository.findEmployeesByAge(age);
+    //done
+    public List<EmployeeResponse> getEmployeesByAge(int age) {
+        List<Employee> employees =  employeeRepository.findEmployeesByAge(age);
+        List<EmployeeResponse> result = new ArrayList<>();
+
+        return helper(employees);
     }
 
-    public List<Employee> findEmployeesByDepartment_DepartmentId(int departmentId) {
+    //done
+    public List<EmployeeResponse> findEmployeesByDepartment_DepartmentId(int departmentId) {
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "department id not found!! So can't proceed!!"));
 
-        return employeeRepository.findEmployeesByDepartment_DepartmentId(departmentId);
-
+        List<Employee> employees =  employeeRepository.findEmployeesByDepartment_DepartmentId(departmentId);
+        return helper(employees);
     }
 
-    public List<Employee> findEmployeesByStatus(Status status) {
-        return employeeRepository.findEmployeesByStatus(status);
+    public List<EmployeeResponse> findEmployeesByStatus(Status status) {
+        List<Employee> employees =  employeeRepository.findEmployeesByStatus(status);
+        return helper(employees);
     }
 
-    public void updateEmployees(int employeeId, Employee employee) {
-        Employee obj = employeeRepository.findById(employeeId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found!!"));
-        obj.setFirstName(employee.getFirstName());
-        obj.setLastName(employee.getLastName());
-        obj.setAge(employee.getAge());
-        obj.setSalary(employee.getSalary());
-        obj.setDepartment(employee.getDepartment());
+    public void updateEmployees(int employeeId, EmployeeRequest request) {
+        Employee obj = employeeRepository.findById(employeeId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found, hence can't proceed!!!"));
+        obj.setFirstName(request.getFirstName());
+        obj.setLastName(request.getLastName());
+        obj.setAge(request.getAge());
+        obj.setSalary(request.getSalary());
         employeeRepository.save(obj);
     }
 
@@ -74,22 +89,65 @@ public class EmployeeService {
     //don't take entire object as the request body, as in such cases,
     //if the client modifies the body, then the modified object, will be saved
     //in the db, which might not be consistent with the original db structure/data.
-    public Employee assignDepartmentToEmployee(int departmentId, int employeeId) {
+    public EmployeeResponse assignDepartmentToEmployee(int departmentId, int employeeId) {
         Department fetchedDepartment = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Department not found!!"));
         Employee employee = employeeRepository.findById(employeeId)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found!"));
 
+
         employee.setDepartment(fetchedDepartment);
         employeeRepository.save(employee);
-        return employee;
+        return toResponse(employee);
     }
 
-    public  List<Employee> findEmployeesByDepartment_DepartmentName(String departmentName) {
+    public  List<EmployeeResponse> findEmployeesByDepartment_DepartmentName(String departmentName) {
         Department department = departmentRepository.findByDepartmentName(departmentName);
         if(department == null){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "department name not found, hence can't proceed");
         }
-        return employeeRepository.findEmployeesByDepartment_DepartmentName(departmentName);
+        List<Employee> employees =  employeeRepository.findEmployeesByDepartment_DepartmentName(departmentName);
+        return helper(employees);
+    }
+
+    //the mapper method, which will actually filter, what to send as
+    //response to the client from an employee object.₹
+    private EmployeeResponse toResponse(Employee employee){
+        EmployeeResponse response = new EmployeeResponse();
+        response.setEmployeeId(employee.getEmployeeId());
+        response.setFirstName(employee.getFirstName());
+        response.setLastName(employee.getLastName());
+        response.setAge(employee.getAge());
+        response.setStatus(employee.getStatus());
+        Department department = employee.getDepartment();
+        if(department == null){
+            response.setDepartmentName("Not assigned to any department yet!");
+        }
+        else{
+            response.setDepartmentName(department.getDepartmentName());
+
+        }
+
+        return response;
+    }
+
+    private Employee toEntity(EmployeeRequest request){
+        Employee employee = new Employee();
+        employee.setFirstName(request.getFirstName());
+        employee.setLastName(request.getLastName());
+        employee.setAge(request.getAge());
+        employee.setSalary(request.getSalary());
+        employee.setStatus(Status.ACTIVE);
+        //employeeRepository.save(employee);
+        return employee;
+    }
+
+    private List<EmployeeResponse> helper(List<Employee> employees){
+        List<EmployeeResponse> result = new ArrayList<>();
+
+        for(Employee e : employees){
+            result.add(toResponse(e));
+        }
+        return result;
     }
 }
