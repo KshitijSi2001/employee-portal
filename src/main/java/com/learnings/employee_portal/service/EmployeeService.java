@@ -1,8 +1,9 @@
 package com.learnings.employee_portal.service;
 
 
-import com.learnings.employee_portal.dto.EmployeeRequest;
+import com.learnings.employee_portal.dto.EmployeeCreateRequest;
 import com.learnings.employee_portal.dto.EmployeeResponse;
+import com.learnings.employee_portal.dto.EmployeeUpdateRequest;
 import com.learnings.employee_portal.entity.Department;
 import com.learnings.employee_portal.entity.Employee;
 import com.learnings.employee_portal.model.Status;
@@ -41,10 +42,11 @@ public class EmployeeService {
     }
 
 
-    public void addEmployees(EmployeeRequest request) {
+    public EmployeeResponse addEmployees(EmployeeCreateRequest request) {
         Employee employee = toEntity(request);
 
         employeeRepository.save(employee);
+        return toResponse(employee);
     }
 
 
@@ -70,19 +72,29 @@ public class EmployeeService {
         return helper(employees);
     }
 
-    public void updateEmployees(int employeeId, EmployeeRequest request) {
+    public EmployeeResponse updateEmployees(int employeeId, EmployeeUpdateRequest request) {
         Employee obj = employeeRepository.findById(employeeId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found, hence can't proceed!!!"));
-        obj.setFirstName(request.getFirstName());
-        obj.setLastName(request.getLastName());
-        obj.setAge(request.getAge());
-        obj.setSalary(request.getSalary());
+        if(request.getFirstName() != null){
+            obj.setFirstName(request.getFirstName());
+        }
+        if(request.getLastName() != null){
+            obj.setLastName(request.getLastName());
+        }
+        if(request.getAge() != null){
+            obj.setAge(request.getAge());
+        }
+        if(request.getSalary() != null){
+            obj.setSalary(request.getSalary());
+        }
         employeeRepository.save(obj);
+        return toResponse(obj);
     }
 
-    public void updateStatusOfEmployees(int employeeId) {
+    public EmployeeResponse updateStatusOfEmployees(int employeeId) {
         Employee employee = employeeRepository.findById(employeeId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not present!!"));
         employee.setStatus(Status.INACTIVE);
         employeeRepository.save(employee);
+        return toResponse(employee);
     }
 
     //always try to fetch that part of db, which needs to be modified,
@@ -131,7 +143,7 @@ public class EmployeeService {
         return response;
     }
 
-    private Employee toEntity(EmployeeRequest request){
+    private Employee toEntity(EmployeeCreateRequest request){
         Employee employee = new Employee();
         employee.setFirstName(request.getFirstName());
         employee.setLastName(request.getLastName());

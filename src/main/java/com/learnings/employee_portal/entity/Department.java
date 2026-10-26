@@ -24,7 +24,7 @@ public class Department {
 
 
     @OneToMany(mappedBy = "department")
-    @JsonIgnore
+
     private List<Employee> employees;
 
 }

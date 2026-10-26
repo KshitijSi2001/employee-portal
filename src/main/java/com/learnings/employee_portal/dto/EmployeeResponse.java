@@ -5,10 +5,10 @@ import lombok.Data;
 
 @Data
 public class EmployeeResponse {
-    private int employeeId;
+    private Integer employeeId;
     private String firstName;
     private String lastName;
-    private int age;
+    private Integer age;
     private Status status;
     private String departmentName;
 

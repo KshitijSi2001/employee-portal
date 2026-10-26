@@ -1,17 +1,16 @@
 package com.learnings.employee_portal.controller;
 
-import com.learnings.employee_portal.dto.EmployeeRequest;
+import com.learnings.employee_portal.dto.EmployeeCreateRequest;
 import com.learnings.employee_portal.dto.EmployeeResponse;
-import com.learnings.employee_portal.entity.Employee;
+import com.learnings.employee_portal.dto.EmployeeUpdateRequest;
 import com.learnings.employee_portal.model.Status;
-import com.learnings.employee_portal.repository.EmployeeRepository;
 import com.learnings.employee_portal.service.EmployeeService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -63,9 +62,11 @@ public class EmployeeController {
     }
 
     @PostMapping("/employees")
-    public void addEmployees(@RequestBody EmployeeRequest employee){
+    public ResponseEntity<EmployeeResponse> addEmployees(@Valid @RequestBody EmployeeCreateRequest employee){
 
-        employeeService.addEmployees(employee);
+        //employeeService.addEmployees(employee);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(employeeService.addEmployees(employee));
     }
 
     @PutMapping("/employees/department")
@@ -75,8 +76,8 @@ public class EmployeeController {
     }
 
     @PutMapping("/employees")
-    public void updateEmployees(@RequestParam int employeeId, @RequestBody EmployeeRequest request){
-        employeeService.updateEmployees(employeeId, request);
+    public ResponseEntity<EmployeeResponse> updateEmployees( @RequestParam int employeeId, @Valid @RequestBody EmployeeUpdateRequest request){
+       return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateEmployees(employeeId, request));
     }
 
 
@@ -85,8 +86,9 @@ public class EmployeeController {
     //in any short time, when the employee will leave the organization,
     //so it's better to update their status to inactive.
     @PutMapping("/employees/status")
-    public void updateStatusOfEmployees(@RequestParam int employeeId){
-        employeeService.updateStatusOfEmployees(employeeId);
+    public ResponseEntity<EmployeeResponse> updateStatusOfEmployees(@RequestParam int employeeId){
+        //employeeService.updateStatusOfEmployees(employeeId);
+        return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateStatusOfEmployees(employeeId));
     }
 
 }

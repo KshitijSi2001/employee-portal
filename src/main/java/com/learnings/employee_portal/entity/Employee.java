@@ -20,8 +20,8 @@ public class Employee {
 
     private String firstName;
     private String lastName;
-    private int age;
-    private long salary;
+    private Integer age;
+    private Long salary;
 
     @ManyToOne
     @JoinColumn(name = "department_id")
